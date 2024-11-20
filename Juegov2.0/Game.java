@@ -10,11 +10,12 @@ import java.util.ArrayList;
 
 public class Game extends JPanel implements KeyListener {
     // Posición del jugador
-    private int playerX = 50;
-    private int playerY = 300;
+    private int playerX = 100;
+    private int playerY = 650;
     private boolean isJumping = false;
     private int jumpSpeed = 0;
     private final int GRAVITY = 1;
+    private final int PLAYER_SPEED = 10;
     
     // Sistema de puntuación
     private int score = 0;
@@ -29,11 +30,13 @@ public class Game extends JPanel implements KeyListener {
     private BufferedImage playerImage;
     private BufferedImage coinImage;
     private BufferedImage platformImage;
+    private BufferedImage doorImage;
+    private BufferedImage groundImage;
     
     // Plataformas y monedas
     private ArrayList<Rectangle> platforms = new ArrayList<>();
     private ArrayList<Rectangle> coins = new ArrayList<>();
-    
+
     // Niveles
     private int currentLevel = 1;
     private final int MAX_LEVELS = 5;
@@ -41,11 +44,13 @@ public class Game extends JPanel implements KeyListener {
     // Control de nivel
     private boolean levelCompleted = false;
     private Rectangle exitDoor;
-    private BufferedImage doorImage;
     
+    // Suelo
+    private final int GROUND_LEVEL = 650;
+
     // Constructor
     public Game() {
-        setPreferredSize(new Dimension(800, 400));
+        setPreferredSize(new Dimension(1920, 1080));
         setFocusable(true);
         addKeyListener(this);
         loadImages();
@@ -55,108 +60,122 @@ public class Game extends JPanel implements KeyListener {
     // Cargar imágenes
     private void loadImages() {
         try {
-            backgroundImage = ImageIO.read(new File("resources/scenary.png")); // Agregar imagen para el fondo
-            playerImage = ImageIO.read(new File("resources/character.png")); // Agregar imagen para el jugador
+            backgroundImage = ImageIO.read(new File("resources/fondo-fondo.png")); // Agregar imagen para el fondo
+            playerImage = ImageIO.read(new File("resources/nipo-moviendose1.png")); // Agregar imagen para el jugador
             coinImage = ImageIO.read(new File("resources/Coin.png")); // Agregar imagen para las monedas
-            platformImage = ImageIO.read(new File("resources/platform.png")); // Agregar imagen para las plataformas
-            doorImage = ImageIO.read(new File("resources/door.png")); // Agregar imagen para la puerta
+            platformImage = ImageIO.read(new File("resources/piso.png")); // Agregar imagen para las plataformas                                                                                                                                    rm.png")); // Agregar imagen para las plataformas
+            doorImage = ImageIO.read(new File("resources/tubo.png")); // Agregar imagen para la puerta
+            groundImage = ImageIO.read(new File("resources/piso.png")); // Agregar imagen para el suelo
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error al cargar las imágenes");
         }
     }
 
-    // Inicializar niveles
     private void initializeLevel(int level) {
         platforms.clear();
         coins.clear();
-        playerX = 50;
-        playerY = 300;
+        playerX = 100;
+        playerY = 650;  // Ajustado al GROUND_LEVEL
         isJumping = false;
         jumpSpeed = 0;
         levelCompleted = false;
-
-        // Configuración de niveles
+    
         switch (level) {
             case 1:
-                // Nivel original
-                platforms.add(new Rectangle(200, 250, 100, 20));
-                platforms.add(new Rectangle(400, 200, 100, 20));
-                platforms.add(new Rectangle(600, 150, 140, 20));
-                platforms.add(new Rectangle(100, 150, 100, 20));
+                // Nivel 1 - Patrón escalonado simple
+                platforms.add(new Rectangle(200, 550, 200, 30));
+                platforms.add(new Rectangle(500, 450, 200, 30)); 
+                platforms.add(new Rectangle(800, 350, 200, 30)); 
+                platforms.add(new Rectangle(1100, 250, 200, 30)); 
                 
-                coins.add(new Rectangle(230, 220, 15, 15));
-                coins.add(new Rectangle(430, 170, 15, 15));
-                coins.add(new Rectangle(630, 120, 15, 15));
-                coins.add(new Rectangle(130, 120, 15, 15));
+                coins.add(new Rectangle(250, 500, 40, 40)); 
+                coins.add(new Rectangle(550, 400, 40, 40));
+                coins.add(new Rectangle(850, 300, 40, 40)); 
+                coins.add(new Rectangle(1150, 200, 40, 40));
                 
-                exitDoor = new Rectangle(700, 100, 40, 50);
+                exitDoor = new Rectangle(1200, 175, 60, 80); 
                 break;
-
+    
             case 2:
-                // Nivel con plataformas 
-                platforms.add(new Rectangle(150, 300, 100, 20));
-                platforms.add(new Rectangle(350, 250, 100, 20));
-                platforms.add(new Rectangle(550, 200, 100, 20));
-                platforms.add(new Rectangle(350, 150, 100, 20));
-                platforms.add(new Rectangle(150, 100, 100, 20));
+                // Nivel 2 - Patrón zigzag
+                platforms.add(new Rectangle(100, 500, 200, 30)); 
+                platforms.add(new Rectangle(700, 500, 200, 30));
+                platforms.add(new Rectangle(1000, 400, 200, 30)); 
+                platforms.add(new Rectangle(1300, 500, 200, 30)); 
+    
+                coins.add(new Rectangle(150, 450, 40, 40)); 
+                coins.add(new Rectangle(450, 350, 40, 40)); 
+                coins.add(new Rectangle(750, 450, 40, 40));
+                coins.add(new Rectangle(1050, 350, 40, 40)); 
+                coins.add(new Rectangle(1350, 450, 40, 40)); 
                 
-                coins.add(new Rectangle(170, 270, 15, 15));
-                coins.add(new Rectangle(370, 220, 15, 15));
-                coins.add(new Rectangle(570, 170, 15, 15));
-                coins.add(new Rectangle(370, 120, 15, 15));
-                coins.add(new Rectangle(170, 70, 15, 15));
-                
-                exitDoor = new Rectangle(180, 50, 40, 50);
+                exitDoor = new Rectangle(1400, 425, 60, 80); 
                 break;
-
+    
             case 3:
-                // Nivel vertical
-                platforms.add(new Rectangle(100, 300, 150, 20));
-                platforms.add(new Rectangle(350, 250, 150, 20));
-                platforms.add(new Rectangle(100, 200, 150, 20));
-                platforms.add(new Rectangle(350, 150, 150, 20));
-                platforms.add(new Rectangle(100, 100, 150, 20));
-                platforms.add(new Rectangle(350, 50, 150, 20));
+                // Nivel 3 - Patrón de torres
+                platforms.add(new Rectangle(225, 550, 150, 30)); 
+                platforms.add(new Rectangle(225, 450, 150, 30)); 
+                platforms.add(new Rectangle(225, 350, 150, 30)); 
                 
-                for (int i = 0; i < platforms.size(); i++) {
-                    Rectangle platform = platforms.get(i);
-                    coins.add(new Rectangle(platform.x + 65, platform.y - 30, 15, 15));
+                platforms.add(new Rectangle(625, 550, 150, 30)); 
+                platforms.add(new Rectangle(625, 450, 150, 30));
+                platforms.add(new Rectangle(625, 350, 150, 30)); 
+                
+                platforms.add(new Rectangle(1025, 550, 150, 30));
+                platforms.add(new Rectangle(1025, 450, 150, 30));
+                platforms.add(new Rectangle(1025, 350, 150, 30)); 
+                
+                platforms.add(new Rectangle(625, 150, 150, 30)); 
+                // Monedas en cada nivel de las torres
+                for (int i = 0; i < 3; i++) {
+                    coins.add(new Rectangle(275, 500 - (i * 100), 40, 40)); 
+                    coins.add(new Rectangle(675, 500 - (i * 100), 40, 40)); 
+                    coins.add(new Rectangle(1075, 500 - (i * 100), 40, 40)); 
                 }
                 
-                exitDoor = new Rectangle(400, 0, 40, 50);
+                exitDoor = new Rectangle(660, 75, 60, 80); 
                 break;
-
+    
             case 4:
-                // Nivel con plataformas
-                platforms.add(new Rectangle(200, 300, 80, 20));
-                platforms.add(new Rectangle(400, 250, 80, 20));
-                platforms.add(new Rectangle(600, 200, 80, 20));
-                platforms.add(new Rectangle(400, 150, 80, 20));
-                platforms.add(new Rectangle(200, 100, 80, 20));
-                
-                coins.add(new Rectangle(220, 270, 15, 15));
-                coins.add(new Rectangle(420, 220, 15, 15));
-                coins.add(new Rectangle(620, 170, 15, 15));
-                coins.add(new Rectangle(420, 120, 15, 15));
-                coins.add(new Rectangle(220, 70, 15, 15));
-                
-                exitDoor = new Rectangle(700, 150, 40, 50);
-                break;
+                // Nivel 4 - Plataformas flotantes dispersas
+                platforms.add(new Rectangle(100, 500, 150, 30));
+                platforms.add(new Rectangle(400, 400, 150, 30)); 
+                platforms.add(new Rectangle(700, 300, 150, 30)); 
+                platforms.add(new Rectangle(1000, 400, 150, 30)); 
+                platforms.add(new Rectangle(1300, 500, 150, 30));
+                platforms.add(new Rectangle(700, 500, 150, 30)); 
 
+                coins.add(new Rectangle(125, 450, 40, 40)); 
+                coins.add(new Rectangle(425, 350, 40, 40)); 
+                coins.add(new Rectangle(725, 250, 40, 40)); 
+                coins.add(new Rectangle(1025, 350, 40, 40)); 
+                coins.add(new Rectangle(1325, 450, 40, 40)); 
+                
+                exitDoor = new Rectangle(740, 425, 60, 80); 
+                break;
+    
             case 5:
-                // Nivel final
-                platforms.add(new Rectangle(100, 300, 60, 20));
-                platforms.add(new Rectangle(250, 250, 60, 20));
-                platforms.add(new Rectangle(400, 200, 60, 20));
-                platforms.add(new Rectangle(550, 150, 60, 20));
-                platforms.add(new Rectangle(700, 100, 60, 20));
+                // Nivel 5 - Nivel final
+                // Plataformas principales
+                platforms.add(new Rectangle(50, 550, 150, 30)); 
+                platforms.add(new Rectangle(300, 450, 150, 30)); 
+                platforms.add(new Rectangle(550, 350, 150, 30)); 
+                platforms.add(new Rectangle(800, 250, 150, 30)); 
+                platforms.add(new Rectangle(950, 350, 150, 30)); 
+                platforms.add(new Rectangle(1200, 450, 150, 30)); 
+                platforms.add(new Rectangle(1350, 350, 150, 30)); 
+
+                // Monedas distribuidas estratégicamente
+                coins.add(new Rectangle(125, 500, 40, 40)); 
+                coins.add(new Rectangle(375, 400, 40, 40)); 
+                coins.add(new Rectangle(625, 300, 40, 40)); 
+                coins.add(new Rectangle(875, 200, 40, 40));
+                coins.add(new Rectangle(1010, 300, 40, 40)); 
+                coins.add(new Rectangle(1275, 300, 40, 40)); 
                 
-                for (Rectangle platform : platforms) {
-                    coins.add(new Rectangle(platform.x + 20, platform.y - 30, 15, 15));
-                }
-                
-                exitDoor = new Rectangle(710, 50, 40, 50);
+                exitDoor = new Rectangle(1395, 275, 60, 80); 
                 break;
         }
     }
@@ -170,8 +189,19 @@ public class Game extends JPanel implements KeyListener {
         // Dibujar fondo
         if (backgroundImage != null) {
             g2d.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
+        } else {
+            g2d.setColor(Color.CYAN);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
         }
         
+        // Dibujar suelo
+        if (groundImage != null) {
+            g2d.drawImage(groundImage, 0, GROUND_LEVEL, getWidth(), getHeight() - GROUND_LEVEL, null);
+        } else {
+            g2d.setColor(Color.GREEN);
+            g2d.fillRect(0, GROUND_LEVEL, getWidth(), getHeight() - GROUND_LEVEL);
+        }
+
         // Dibujar plataformas
         for (Rectangle platform : platforms) {
             if (platformImage != null) {
@@ -242,8 +272,8 @@ public class Game extends JPanel implements KeyListener {
         boolean onSurface = false;
 
         // Colisión con el suelo
-        if (playerY >= 300) {
-            playerY = 300;
+        if (playerY >= GROUND_LEVEL) {
+            playerY = GROUND_LEVEL;
             isJumping = false;
             jumpSpeed = 0;
             onSurface = true;
@@ -318,11 +348,11 @@ public class Game extends JPanel implements KeyListener {
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                playerX -= 5;
+                playerX -= PLAYER_SPEED;
                 facingRight = false;
                 break;
             case KeyEvent.VK_RIGHT:
-                playerX += 5;
+                playerX += PLAYER_SPEED;
                 facingRight = true;
                 break;
             case KeyEvent.VK_SPACE:
@@ -350,15 +380,15 @@ public class Game extends JPanel implements KeyListener {
     // Procesar entrada del teclado
     public void processInput() {
         if (keys[KeyEvent.VK_LEFT]) {
-            playerX -= 5;
+            playerX -= PLAYER_SPEED;
             facingRight = false;
         }
         if (keys[KeyEvent.VK_RIGHT]) {
-            playerX += 5;
+            playerX += PLAYER_SPEED;
             facingRight = true;
         }
     }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     // No se utiliza, pero es necesario implementar el método
     @Override
     public void keyTyped(KeyEvent e) {
